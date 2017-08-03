@@ -3,6 +3,9 @@ var sass = require("gulp-sass");
 var notify = require("gulp-notify");
 var browserSync = require("browser-sync").create();
 var gulpImport = require("gulp-html-import");
+var tap=require("gulp-tap");
+var browserify = require("browserify");
+var buffer = require("gulp-buffer");
 
 // source and distribution folder
 var
@@ -35,7 +38,7 @@ var scss = {
 
 
 // definimos la tarea por defecto
-gulp.task("default",["html","sass"], function(){
+gulp.task("default",["html","sass","js"], function(){
 
     //inciamos el servidor de desarrollo:
     browserSync.init({server:'dist/'});
@@ -45,6 +48,9 @@ gulp.task("default",["html","sass"], function(){
 
     //observamos también los cambios en html y recarga el navegador.
     gulp.watch(["src/*.html", "src/**/*.html"], ["html"]);
+
+    //observa cambios en archivos js y ejecuta de nuevo la tarea js:
+    gulp.watch(["src/js/*.js","src/js/**/*.js"],["js"]);
 });
 
 //tareas de bootstrap-sass:
@@ -77,4 +83,23 @@ gulp.task("html",function(){
     .pipe(gulp.dest("dist/"))
     .pipe(browserSync.stream())
     .pipe(notify("HTML importado"));
+});
+
+//compilar y generar un único js
+gulp.task("js",function(){
+  gulp.src("src/js/main.js")
+    .pipe(tap(function(file){
+      //es decir, reemplazamos el contenido del fichero por lo que broserify nos devuelve al pasarle el fichero
+      file.contents=browserify(file.path) //creamos una instancia de broserify en base al archivo que le estamos pasando
+                    .transform("babelify",{presets:["es2015"]})//traduce nuestro código de es6 a es5
+                    .bundle()//compila el archivo
+                    .on("error",function(){ //en caso de error, mostramos una notificación
+                      return notify().write(error);
+        });
+    }))//nos permite ejecutar una función por cada fichero seleccionado en gulp.src
+    .pipe(buffer())//convertimos a buffer para que funcione el siguiente pipe
+    .pipe(gulp.dest("dist/"))//lo guardamos en la carpeta dist
+    .pipe(browserSync.stream()) //recargamos el navegador
+    .pipe(notify("JS compilado"));
+
 });

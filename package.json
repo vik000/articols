@@ -18,13 +18,22 @@
   },
   "homepage": "https://github.com/vik000/articols#readme",
   "devDependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^7.3.0",
     "bootstrap-sass": "^3.3.7",
     "browser-sync": "^2.18.13",
+    "browserify": "^14.4.0",
     "gulp": "^3.9.1",
+    "gulp-buffer": "0.0.2",
     "gulp-html-import": "0.0.2",
     "gulp-notify": "^3.0.0",
     "gulp-sass": "^3.1.0",
+    "gulp-tap": "^1.0.1",
+    "gulp-uglify": "^3.0.0",
     "gulp-watch": "^4.3.11",
     "sass-font-awesome": "^1.0.2"
+  },
+  "dependencies": {
+    "jquery": "^3.2.1"
   }
 }
