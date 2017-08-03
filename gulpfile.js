@@ -6,6 +6,7 @@ var gulpImport = require("gulp-html-import");
 var tap=require("gulp-tap");
 var browserify = require("browserify");
 var buffer = require("gulp-buffer");
+var concat = require('gulp-concat');
 
 // source and distribution folder
 var
@@ -85,21 +86,36 @@ gulp.task("html",function(){
     .pipe(notify("HTML importado"));
 });
 
-//compilar y generar un único js
-gulp.task("js",function(){
-  gulp.src("src/js/main.js")
-    .pipe(tap(function(file){
-      //es decir, reemplazamos el contenido del fichero por lo que broserify nos devuelve al pasarle el fichero
-      file.contents=browserify(file.path) //creamos una instancia de broserify en base al archivo que le estamos pasando
-                    .transform("babelify",{presets:["es2015"]})//traduce nuestro código de es6 a es5
-                    .bundle()//compila el archivo
-                    .on("error",function(){ //en caso de error, mostramos una notificación
-                      return notify().write(error);
-        });
-    }))//nos permite ejecutar una función por cada fichero seleccionado en gulp.src
-    .pipe(buffer())//convertimos a buffer para que funcione el siguiente pipe
-    .pipe(gulp.dest("dist/"))//lo guardamos en la carpeta dist
-    .pipe(browserSync.stream()) //recargamos el navegador
-    .pipe(notify("JS compilado"));
+// concatena las librerias externas y las propias en un solo js
+gulp.task("concat-js", function(){
+    return gulp.src([
+                    "./src/js/*.js",
+                    "node_modules/bootstrap-sass/assets/javascripts/bootstrap.js",
+                    "node_modules/jquery/dist/jquery.js"
+                ])
+               .pipe(concat('concat.js'))
+               .pipe(gulp.dest('./src/js/concat/'));
+});
 
+//compilar y generar un único js
+gulp.task("js",["concat-js"],function(){
+    gulp.src([
+              js.in
+            ])
+        .pipe(tap(function(file){ // tap nos permite ejecutar una función por cada fichero seleccionado en gulp.src
+            // reemplazamos el contenido del fichero por lo que nos devuelve browserify pasándole el fichero
+            file.contents = browserify(file.path, {debug: true}) // creamos una instancia de browserify en base al archivo
+                            .transform("babelify", {presets: ["es2015"]}) // traduce nuestro codigo de ES6 -> ES5
+                            .bundle() // compilamos el archivo
+                            .on("error", function(error){ // en caso de error, mostramos una notificación
+                                return notify().write(error);
+                            });
+        }))
+        .pipe(buffer()) // convertimos a buffer para que funcione el siguiente pipe
+        .pipe(sourcemaps.init({loadMaps: true})) // captura los sourcemaps del archivo fuente
+        .pipe(uglify()) // minificamos el JavaScript
+        .pipe(sourcemaps.write('./')) // guarda los sourcemaps en el mismo directorio que el archivo fuente
+        .pipe(gulp.dest(js.out)) // lo guardamos en la carpeta dist
+        .pipe(browserSync.stream()) // recargamos el navegador
+        .pipe(notify("JS Compilado"));
 });
