@@ -1,0 +1,4 @@
+/node_modules
+
+#la carpeta dist no forma parte del repo:
+dist/
