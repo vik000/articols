@@ -99,9 +99,7 @@ gulp.task("concat-js", function(){
 
 //compilar y generar un único js
 gulp.task("js",["concat-js"],function(){
-    gulp.src([
-              js.in
-            ])
+    gulp.src(["src/js/*.js","src/js/**/*.js"])
         .pipe(tap(function(file){ // tap nos permite ejecutar una función por cada fichero seleccionado en gulp.src
             // reemplazamos el contenido del fichero por lo que nos devuelve browserify pasándole el fichero
             file.contents = browserify(file.path, {debug: true}) // creamos una instancia de browserify en base al archivo
@@ -112,10 +110,10 @@ gulp.task("js",["concat-js"],function(){
                             });
         }))
         .pipe(buffer()) // convertimos a buffer para que funcione el siguiente pipe
-        .pipe(sourcemaps.init({loadMaps: true})) // captura los sourcemaps del archivo fuente
-        .pipe(uglify()) // minificamos el JavaScript
-        .pipe(sourcemaps.write('./')) // guarda los sourcemaps en el mismo directorio que el archivo fuente
-        .pipe(gulp.dest(js.out)) // lo guardamos en la carpeta dist
+        //.pipe(sourcemaps.init({loadMaps: true})) // captura los sourcemaps del archivo fuente
+        //.pipe(uglify()) // minificamos el JavaScript
+        //.pipe(sourcemaps.write('./')) // guarda los sourcemaps en el mismo directorio que el archivo fuente
+        .pipe(gulp.dest("dist/")) // lo guardamos en la carpeta dist
         .pipe(browserSync.stream()) // recargamos el navegador
         .pipe(notify("JS Compilado"));
 });
